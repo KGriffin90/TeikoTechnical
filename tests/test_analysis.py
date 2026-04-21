@@ -7,13 +7,11 @@ from analysis import (
     run_statistical_tests,
 )
 
-# Verify that percentages for each sample sum to 100%
 def test_frequencies_sum_to_100():
     df = compute_frequency_table()
     sums = df.groupby("sample")["percentage"].sum()
     assert np.allclose(sums, 100.0, atol=0.01)
 
-# Validate that statistical output contains required columns and correct row count
 def test_stats_shape():
     freq = compute_responder_frequencies()
     stats_df = run_statistical_tests(freq)
@@ -21,6 +19,7 @@ def test_stats_shape():
     assert set(stats_df.columns) >= {
         "population",
         "p_value",
+        "p_value_adj",   
         "effect_size",
     }
 

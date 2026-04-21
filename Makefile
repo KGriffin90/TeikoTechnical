@@ -1,56 +1,67 @@
-.PHONY: install db dashboard analysis clean help
+.PHONY: setup pipeline dashboard install db schema analysis test clean help bootstrap
 
 # Config
-CSV    ?= cell-count.csv
+CSV    ?= data/cell-count.csv
 DB     ?= cell_counts.db
 PYTHON  = python3
 
 # Default target
 help:
 	@echo ""
-	@echo "  Loblaw Bio : Miraclib Trial Analysis"
+	@echo "  Loblaw Bio · Miraclib Trial"
 	@echo ""
-	@echo "  Usage:"
-	@echo "    make install     Install Python dependencies"
-	@echo "    make db          Load cell-count.csv into SQLite ($(DB))"
-	@echo "    make dashboard   Launch the interactive Dash dashboard"
-	@echo "    make analysis    Run Parts 2–4 and print results to terminal"
-	@echo "    make all         install → db → dashboard"
-	@echo "    make clean       Remove the generated database and plot files"
+	@echo "  Required targets:"
+	@echo "    make setup       Install all dependencies"
+	@echo "    make pipeline    Run full pipeline: load data → analysis → schema"
+	@echo "    make dashboard   Launch dashboard at http://127.0.0.1:8050"
 	@echo ""
-	@echo "  Options:"
-	@echo "    CSV ?= data/cell-count.csv   Override input CSV  (default: $(CSV))"
-	@echo "    DB ?= data/cell_counts.db      Override database path (default: $(DB))"
+	@echo "  Additional targets:"
+	@echo "    make test        Run pytest"
+	@echo "    make clean       Remove generated files"
+	@echo ""
+	@echo "  Overrides:"
+	@echo "    CSV=$(CSV)"
+	@echo "    DB=$(DB)"
 	@echo ""
 
-# Install 
-install:
+# Setup
+setup:
 	$(PYTHON) -m pip install -r requirements.txt
 
-# Load data
-db: $(CSV)
+# Pipeline
+pipeline: $(CSV)
 	$(PYTHON) load_data.py --csv $(CSV) --db $(DB)
+	$(PYTHON) analysis.py
+	$(PYTHON) export_schema.py
 
 $(CSV):
-	@echo "ERROR: $(CSV) not found. Please place your cell-count CSV file in the project root."
+	@echo "ERROR: $(CSV) not found. Place cell-count.csv in data/."
 	@exit 1
 
-# Dashboard
+# Dashbaord
 dashboard: $(DB)
 	$(PYTHON) dashboard.py
+
+# Aliases
+install: setup
+db: pipeline
+bootstrap: setup pipeline
+
+# Schema PNG
+schema: $(DB)
+	$(PYTHON) export_schema.py
 
 # CLI analysis
 analysis: $(DB)
 	$(PYTHON) analysis.py
 
-# Full pipeline
-all: install db dashboard
-
 # Tests
 test:
-	$(PYTHON) -m pytest -v
+	$(PYTHON) -m pytest tests/ -v
 
 # Clean
 clean:
-	rm -f $(DB) boxplot.png
-	@echo "Removed $(DB) and boxplot.png"
+	rm -f $(DB) docs/schema.png
+	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
+	find . -name "*.pyc" -delete 2>/dev/null || true
+	@echo "Clean."

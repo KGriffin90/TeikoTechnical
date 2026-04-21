@@ -1,9 +1,4 @@
-"""
-config.py
-   
-Single source of truth for shared constants.
-Both analysis.py and load_data.py import from here.
-"""
+"""config.py"""
 
 DB_PATH = "cell_counts.db"
 

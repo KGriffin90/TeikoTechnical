@@ -1,8 +1,5 @@
-"""
-analysis.py
-   --
-Core data-access and analysis functions for the Loblaw Bio Miraclib trial.
-"""
+"""analysis.py
+Core data access and analysis functions for the Loblaw Bio Miraclib trial."""
 
 import functools
 import os
@@ -20,7 +17,6 @@ from statsmodels.stats.multitest import multipletests
 
 from config import DB_PATH, POPULATIONS
 
-# Cache helpers
 def _db_mtime(db_path: str) -> float:
     """Return the file-modification time; 0.0 if the file does not exist yet."""
     try:
@@ -28,7 +24,6 @@ def _db_mtime(db_path: str) -> float:
     except FileNotFoundError:
         return 0.0
 
-# Helper Methods
 def get_connection(db_path: str = DB_PATH) -> sqlite3.Connection:
     conn = sqlite3.connect(db_path)
     return conn
@@ -37,7 +32,6 @@ def fetch_df(query: str, db_path: str = DB_PATH, params=()) -> pd.DataFrame:
     with get_connection(db_path) as conn:
         return pd.read_sql_query(query, conn, params=params)
 
-# Compute Frequency Table
 @functools.lru_cache(maxsize=8)
 def _compute_frequency_table_cached(db_path: str, _mtime: float) -> pd.DataFrame:
     sql = """
@@ -69,7 +63,6 @@ def compute_frequency_table(db_path: str = DB_PATH) -> pd.DataFrame:
     """
     return _compute_frequency_table_cached(db_path, _db_mtime(db_path))
 
-# Responder Frequencies
 def get_melanoma_miraclib_pbmc(db_path: str = DB_PATH) -> pd.DataFrame:
     """Pull melanoma PBMC samples treated with miraclib (all timepoints)."""
     sql = """
@@ -114,7 +107,6 @@ def compute_responder_frequencies(db_path: str = DB_PATH) -> pd.DataFrame:
     """
     return _compute_responder_frequencies_cached(db_path, _db_mtime(db_path))
 
-# Statistical Tests
 def run_statistical_tests(freq_df: pd.DataFrame) -> pd.DataFrame:
     """
     Mann-Whitney U test per population (responders vs non-responders).
@@ -168,7 +160,6 @@ def run_statistical_tests(freq_df: pd.DataFrame) -> pd.DataFrame:
 
     return pd.DataFrame(results).sort_values("p_value_adj")
 
-# Longitudinal Figure
 def make_longitudinal_figure():
     """Line chart of immune-cell trajectories over t = 0 / 7 / 14."""
     df = get_melanoma_miraclib_pbmc()
@@ -295,7 +286,7 @@ def compute_subset_summaries(db_path: str = DB_PATH) -> dict:
         "sex_counts":          sex_counts,
     }
 
-# Logistic Regression  (Predictive Modelling tab)
+# Predictive Modelling
 @functools.lru_cache(maxsize=8)
 def _build_response_model_cached(db_path: str, _mtime: float):
     df = get_baseline_melanoma_miraclib(db_path)
@@ -331,7 +322,7 @@ def _build_response_model_cached(db_path: str, _mtime: float):
         "coefficient": model.coef_[0],
     }).sort_values("coefficient", ascending=False).reset_index(drop=True)
 
-    # In sample ROC curve (for illustrative purposes only)
+    # ROC curve (for illustrative purposes only)
     y_score         = model.predict_proba(X)[:, 1]
     fpr, tpr, _     = roc_curve(y, y_score)
     insample_auc    = float(auc(fpr, tpr))

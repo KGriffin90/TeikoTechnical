@@ -1,16 +1,11 @@
-"""
-dashboard.py
-    
-Interactive Dash dashboard for the Loblaw Bio Miraclib clinical trial.
-
-Run:
-    python dashboard.py
-Then open http://127.0.0.1:8050 in your browser.
-"""
+"""dashboard.py 
+Interactive dashboard for the Miraclib trial. 
+To view, run in terminal with `python3 dashboard.py`."""
 
 import json
 import os
 
+import pandas as pd
 import dash
 import numpy as np
 from dash import Input, Output, dcc, html, dash_table
@@ -317,16 +312,38 @@ def make_freq_table_component(freq_table):
         dash_table.DataTable(
             id="freq-datatable",
             columns=[
-                {"name": "Sample",       "id": "sample"},
-                {"name": "Total Count",  "id": "total_count",  "type": "numeric",
-                 "format": dash_table.Format.Format(group=",")},
-                {"name": "Population",   "id": "population"},
-                {"name": "Count",        "id": "count",        "type": "numeric",
-                 "format": dash_table.Format.Format(group=",")},
-                {"name": "% Frequency",  "id": "percentage",   "type": "numeric",
-                 "format": dash_table.Format.Format(precision=2,
-                           scheme=dash_table.Format.Scheme.fixed)},
-            ],
+            {
+                "name": "Sample",
+                "id": "sample",
+                "filter_options": {"placeholder_text": "e.g. sample001"},
+            },
+            {
+                "name": "Total Count",
+                "id": "total_count",
+                "type": "numeric",
+                "format": dash_table.Format.Format(group=","),
+                "filter_options": {"placeholder_text": "e.g. >1000"},
+            },
+            {
+                "name": "Population",
+                "id": "population",
+                "filter_options": {"placeholder_text": "e.g. b_cell"},
+            },
+            {
+                "name": "Count",
+                "id": "count",
+                "type": "numeric",
+                "format": dash_table.Format.Format(group=","),
+                "filter_options": {"placeholder_text": "e.g. >200"},
+            },
+            {
+                "name": "% Frequency",
+                "id": "percentage",
+                "type": "numeric",
+                "format": dash_table.Format.Format(precision=2, scheme=dash_table.Format.Scheme.fixed),
+                "filter_options": {"placeholder_text": "e.g. >20"},
+            },
+],
             data=freq_table.to_dict("records"),
             page_size=15,
             page_action="native",
@@ -363,7 +380,6 @@ def make_freq_table_component(freq_table):
                 ],
                 {"if": {"column_id": "sample"}, "color": COLORS["accent"]},
             ],
-            filter_options={"placeholder_text": "Filter…"},
         ),
     ])
 
@@ -487,7 +503,7 @@ app.layout = html.Div([
             "color":         COLORS["accent"],
             "letterSpacing": "0.08em",
         }),
-        html.Span(" // MIRACLIB TRIAL", style={
+        html.Span(" | MIRACLIB TRIAL", style={
             "fontFamily":    "'IBM Plex Mono', monospace",
             "fontSize":      "13px",
             "color":         COLORS["muted"],
@@ -573,14 +589,7 @@ def populate_store(_tab):
     Input("analysis-store", "data"),
 )
 def render_tab(tab, store):
-    import json
-    import pandas as pd
-
     def from_store(json_str):
-        """Deserialise a JSON string from dcc.Store into a DataFrame.
-        Uses json.loads + pd.DataFrame to avoid the pd.read_json(str)
-        deprecation warning introduced in pandas 2.x.
-        """
         return pd.DataFrame(json.loads(json_str))
 
     if store is None:
@@ -610,10 +619,10 @@ def render_tab(tab, store):
         sig_color  = COLORS["sig"] if sig_pops else COLORS["nonresponder"]
 
         finding_items = [
-            ("Study",           "Miraclib (melanoma PBMC) - Mann-Whitney U - FDR-corrected"),
+            ("Study",           "Miraclib (melanoma PBMC) | Mann Whitney U | FDR Corrected"),
             ("Populations",     "B cell, CD8 T, CD4 T, NK, Monocyte"),
             ("Significant",     sig_text),
-            ("Interpretation",  "Consider longitudinal or multi-modal biomarker analysis"
+            ("Interpretation",  "Consider longitudinal or multi modal biomarker analysis"
                                 if not sig_pops else
                                 "Highlighted populations are candidate predictive biomarkers"),
         ]
@@ -768,8 +777,8 @@ def render_tab(tab, store):
         return html.Div([
             section_label("Part 4 : Data Subset Analysis"),
             section_heading("Baseline Melanoma - Miraclib - PBMC"),
-            section_sub("time_from_treatment_start = 0 - condition = melanoma - "
-                        "treatment = miraclib - sample_type = PBMC"),
+            section_sub("time_from_treatment_start = 0 | condition = melanoma | "
+                        "treatment = miraclib | sample_type = PBMC"),
 
             html.Div([
                 stat_card("Baseline Samples", n_baseline,  "matching all filters"),
@@ -806,8 +815,6 @@ def render_tab(tab, store):
                     style={"color": COLORS["muted"], "fontSize": "14px"},
                 )),
             ])
-
-        import pandas as pd
 
         auc_mean    = model["auc_mean"]
         auc_std     = model["auc_std"]
@@ -913,7 +920,7 @@ def render_tab(tab, store):
             section_label("Part 5 : Predictive Modelling"),
             section_heading("Response Prediction Model"),
             section_sub(
-                f"Logistic regression - baseline PBMC frequencies - "
+                f"Logistic regression | baseline PBMC frequencies : "
                 f"{n_samples} samples ({n_resp} responders, {n_nonr} non-responders)"
             ),
 

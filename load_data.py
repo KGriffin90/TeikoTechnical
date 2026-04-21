@@ -1,11 +1,5 @@
-"""
-load_data.py
-    
-Initialises the SQLite database schema and loads cell-count.csv.
-
-Run:
-    python3 load_data.py
-"""
+"""load_data.py
+Initializes the SQLite schema and loads cell-count.csv into it."""
 
 import os
 import sys
@@ -17,7 +11,6 @@ from config import DB_PATH
 
 DEFAULT_CSV = "data/cell-count.csv"
 
-# Schema
 SCHEMA = """
 PRAGMA foreign_keys = ON;
 
@@ -86,7 +79,6 @@ JOIN subject_treatment st  ON sub.subject_id = st.subject_id
 JOIN treatment_arm     ta  ON st.arm_id      = ta.arm_id;
 """
 
-# Loader
 def load_csv(csv_path: str, conn: sqlite3.Connection) -> int:
     """Parse csv_path and insert all rows; returns row count inserted."""
     cur = conn.cursor()
@@ -195,7 +187,6 @@ def load_csv(csv_path: str, conn: sqlite3.Connection) -> int:
     print(f"Duplicate/skipped rows: {skipped}")
     return rows_inserted
 
-# Entry Point
 def main():
     parser = argparse.ArgumentParser(
         description="Initialise DB and load cell-count CSV.")

@@ -1,19 +1,11 @@
-"""
-export_schema.py
-     -
-Renders the database schema as a static PNG and writes it to docs/schema.png.
-Not part of the live dashboard.
-
-Run:
-    python3 export_schema.py
-"""
+"""export_schema.py
+Renders the database schema as a PNG and writes it to docs/schema.png."""
 
 import os
 import pathlib
 
 import plotly.graph_objects as go
 
-# Styling
 COLORS = {
     "border":  "#dde1e7",
     "muted":   "#718096",
@@ -22,7 +14,6 @@ COLORS = {
     "grid":    "#edf2f7",
 }
 
-# Schema Diagram
 def build_schema_figure() -> go.Figure:
     """Return a Plotly figure of the SQLite schema."""
     tables = [
@@ -120,7 +111,6 @@ def build_schema_figure() -> go.Figure:
     )
     return fig
 
-# Main
 def main(out_path: str = "docs/schema.png", scale: int = 2) -> None:
     pathlib.Path(out_path).parent.mkdir(parents=True, exist_ok=True)
     fig = build_schema_figure()
