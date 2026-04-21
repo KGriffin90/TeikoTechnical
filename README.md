@@ -21,9 +21,9 @@ Running the Project:
 4) Open in browser at http://127.0.0.1:8050
 
 Other available targets:
-    make test        run the test suite
-    make schema      regenerate docs/schema.png
-    make clean       remove the generated database and cached files
+    1) make test        run the test suite
+    2) make schema      regenerate docs/schema.png
+    3) make clean       remove the generated database and cached files
 
 
 Dashboard
