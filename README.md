@@ -10,13 +10,13 @@ Data is taken from a single input file (cell-count.csv). The pipeline automatica
 Running the Project:
 
 1) Install dependencies:
-    'make setup'
+    `make setup`
 
 2) Run the full pipeline (loads data, runs analysis, renders schema):
-    'make pipeline'
+    `make pipeline`
 
 3) Launch the dashboard:
-    'make dashboard'
+    `make dashboard`
 
 4) Open in browser at http://127.0.0.1:8050
 
