@@ -54,9 +54,9 @@ The raw CSV is normalised into five tables:
             time_from_treatment_start, b_cell, cd8_t_cell, cd4_t_cell,
             nk_cell, monocyte)
 
-The schema diagram is located at docs/schema.png (regenerates with: make schema).
+The schema diagram is located at docs/schema.png (regenerates with: `make schema`).
 
-My rationale for this design:
+### My thought process for this design:
 
 I split subjects and samples into separate tables because a single subject can have multiple samples collected over different times. Therefore, it felt cleaner to model it explicitly instead of flattening everything into one table.
 
@@ -79,7 +79,7 @@ If the number of measured populations grows beyond the current five, I would rev
 On the app side, I am currently using a simple lru_cache in analysis.py based on the database path and modification time. That works fine at this scale, but for larger workloads I would replace it with a proper query cache for more complex queries.
 
 
-Code structure
+### Code structure
 
 config.py
     Single source of truth for DB_PATH and POPULATIONS. Both analysis.py and
