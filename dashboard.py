@@ -22,25 +22,21 @@ from analysis import (
     run_statistical_tests,
 )
 
-# Colour Palette
 COLORS = {
     "bg":           "#f4f5f7",
     "panel":        "#ffffff",
     "border":       "#dde1e7",
     "text":         "#1a202c",
     "muted":        "#718096",
-    "accent":       "#2c5282",      # responders / positive signal
+    "accent":       "#2c5282",
     "responder":    "#2c5282",
-    "nonresponder": "#E07B39",      # non-responders / negative signal
+    "nonresponder": "#E07B39",
     "grid":         "#edf2f7",
-    "sig":          "#276749",      # statistically significant
+    "sig":          "#276749",
 }
 
-# Population colors
 POP_COLORS = ["#2c5282", "#2d6a4f", "#b7791f", "#6b46c1", "#c53030"]
 
-
-# Shared Plotly Layout
 LAYOUT_BASE = dict(
     paper_bgcolor="white",
     plot_bgcolor="white",
@@ -59,7 +55,6 @@ def axis_style(**kwargs):
         **kwargs,
     )
 
-# Style Helpers
 def card(children, style=None):
     base = {
         "background":    COLORS["panel"],
@@ -129,7 +124,6 @@ def stat_card(label, value, desc):
         "padding":      "16px 20px",
     })
 
-# Dot Plot
 def make_dotplot_figure(responder_df):
     """
     Dot plot with median bar and IQR band.
@@ -224,7 +218,6 @@ def make_dotplot_figure(responder_df):
     )
     return fig
 
-# Stats Table
 def make_stats_table(stats_df):
     rows = []
     for _, r in stats_df.iterrows():
@@ -283,7 +276,6 @@ def make_stats_table(stats_df):
         ],
     )
 
-
 def make_interpretation(stats_df):
     sig_pops = stats_df[stats_df["significant"]]["population"].tolist()
     n_r      = int(stats_df.iloc[0]["n_responders"])
@@ -304,7 +296,6 @@ def make_interpretation(stats_df):
         f"biomarker modalities to identify predictors of Miraclib response."
     )
 
-# Frequency Table Component
 def make_freq_table_component(freq_table):
     pop_color_map = dict(zip(POPULATIONS, POP_COLORS))
 
@@ -383,7 +374,6 @@ def make_freq_table_component(freq_table):
         ),
     ])
 
-# Subset Bar Charts
 def make_bar(df, x_col, y_col, title, color):
     layout = {**LAYOUT_BASE, "margin": dict(l=40, r=20, t=40, b=40)}
     fig    = go.Figure(go.Bar(
@@ -403,19 +393,16 @@ def make_bar(df, x_col, y_col, title, color):
     )
     return fig
 
-
 def make_subset_figures(subset):
     d    = subset
     figs = []
     _layout = {**LAYOUT_BASE, "margin": dict(l=40, r=20, t=40, b=40)}
 
-    # Samples per project
     figs.append(make_bar(
         d["samples_per_project"], "project", "n_samples",
         "4a  -  Samples per Project", COLORS["accent"]
     ))
 
-    # Response counts
     resp = d["response_counts"].copy()
     resp["label"] = resp["response"].map({"yes": "Responder", "no": "Non-Responder"})
     fig_b = go.Figure(go.Bar(
@@ -435,7 +422,6 @@ def make_subset_figures(subset):
     )
     figs.append(fig_b)
 
-    # Sex
     sex = d["sex_counts"].copy()
     sex["label"] = sex["sex"].map({"M": "Male", "F": "Female"})
     fig_c = go.Figure(go.Bar(
@@ -491,10 +477,9 @@ app.index_string = """<!DOCTYPE html>
 <body>{%app_entry%}<footer>{%config%}{%scripts%}{%renderer%}</footer></body>
 </html>"""
 
-# App Layout
+
 app.layout = html.Div([
 
-    # Navbar
     html.Div([
         html.Span("LOBLAW BIO", style={
             "fontFamily":    "'IBM Plex Mono', monospace",
@@ -523,10 +508,8 @@ app.layout = html.Div([
         "zIndex":        "100",
     }),
 
-    # Client side data store
     dcc.Store(id="analysis-store"),
 
-    # Tabs
     html.Div([
         dcc.Tabs(
             id="tabs",
@@ -555,7 +538,7 @@ app.layout = html.Div([
 # Store Population Callback
 @app.callback(
     Output("analysis-store", "data"),
-    Input("tabs", "value"),   # triggers on first render
+    Input("tabs", "value"),
 )
 def populate_store(_tab):
     """
@@ -567,7 +550,7 @@ def populate_store(_tab):
     responder_df = compute_responder_frequencies()
     stats_df     = run_statistical_tests(responder_df)
     subset       = compute_subset_summaries()
-    model        = build_response_model()   # cached
+    model        = build_response_model()
 
     return {
         "freq_table":   freq_table.to_json(orient="records"),
@@ -610,7 +593,6 @@ def render_tab(tab, store):
     n_samples  = freq_table["sample"].nunique()
     n_records  = len(freq_table)
 
-    # Overview 
     if tab == "tab-overview":
         sig_pops   = stats_df[stats_df["significant"]]["population"].tolist() \
                      if "significant" in stats_df.columns else []
@@ -729,7 +711,6 @@ def render_tab(tab, store):
                 }),
             ], style={"borderLeft": f"3px solid {COLORS['accent']}"}),
 
-            # Dot plot
             section_label("Distribution"),
             html.P(
                 "Each point is one sample. Thick bar = median; thin band = IQR. "
@@ -742,7 +723,6 @@ def render_tab(tab, store):
                 config={"displayModeBar": False},
             )),
 
-            # Longitudinal trajectories
             section_label("Longitudinal Dynamics"),
             html.H3("Immune Trajectories Over Time (t = 0, 7, 14)", style={
                 "fontSize":     "14px",
@@ -755,7 +735,6 @@ def render_tab(tab, store):
                 config={"displayModeBar": False},
             )),
 
-            # Stats table
             section_label("Statistical Results"),
             html.H3("Mann-Whitney U : Population Comparison", style={
                 "fontSize":     "14px",
@@ -855,7 +834,7 @@ def render_tab(tab, store):
             ),
         )
 
-        #Cross validated AUC strip
+        # AUC strip
         cv_fig = go.Figure()
         fold_labels = [f"Fold {i+1}" for i in range(len(cv_aucs))]
         cv_colors   = [COLORS["sig"] if v >= 0.7
@@ -893,7 +872,7 @@ def render_tab(tab, store):
             bargap=0.35,
         )
 
-        #Feature importance
+        # Feature importance
         coef_colors = [
             COLORS["responder"] if c >= 0 else COLORS["nonresponder"]
             for c in coef_df["coefficient"]
