@@ -1,6 +1,6 @@
 """dashboard.py 
 Interactive dashboard for the Miraclib trial. 
-To view, run in terminal with `python3 dashboard.py`."""
+To view, run in terminal with make dashboard or python3 dashboard.py."""
 
 import json
 import os
